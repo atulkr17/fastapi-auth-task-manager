@@ -1,0 +1,65 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments and local package/build output
+.venv/
+venv/
+env/
+ENV/
+build/
+dist/
+site/
+*.egg-info/
+
+# Local configuration, credentials, and private keys
+.env
+.env.*
+!.env.example
+.secrets/
+secrets/
+secrets.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Logs and generated task exports
+*.log
+logs/
+tasks.json
+
+# IDE and editor state
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Temporary files and caches
+.cache/
+.uv-cache/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+Thumbs.db
+Desktop.ini
+
+# Local databases and generated frontend dependencies
+*.db
+*.sqlite
+*.sqlite3
+node_modules/
+
+# Workspace-mounted operating-system cache directory
+/%SystemDrive%/
