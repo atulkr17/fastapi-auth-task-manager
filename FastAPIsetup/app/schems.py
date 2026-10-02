@@ -15,3 +15,10 @@ class create_user(BaseModel):
     email: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class update_user(BaseModel):
+    name: str | None = None
+    password: str | None = None
+    email: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)    
