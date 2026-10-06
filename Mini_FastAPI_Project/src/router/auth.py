@@ -5,12 +5,20 @@ from src.auth.security import (
     create_access_token,
     verify_password
 )
-
+import os
+import jwt
+#jwt configuration
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+JWT_ALGORITHM= os.getenv('JWT_ALGORITHM', "HS256")
 from src.crud.user import(
     create_user,
     get_user_by_email
 )
-
+from src.auth.security import (
+    create_access_token,
+    create_refresh_token,
+    verify_password
+)
 from src.crud.user import(
     create_user,
     get_user_by_email
@@ -22,7 +30,8 @@ from src.db_services.connect_db import get_db
 from src.schemas.user import(
     UserSignup,
     UserSignin,
-    TokenResponse
+    TokenResponse,
+    RefreshTokenRequest
 )
 
 router = APIRouter(prefix = "/auth", tags  = ["Authentication"])
@@ -69,13 +78,13 @@ def signin(user_data: UserSignin, db: Session = Depends(get_db)):
     JWT access token.
     """
      #find User by email
-     logger.info("user is start fatching")
+     logger.info("Fatching user by email")
      user = get_user_by_email(
          db,
          user_data.email
      )
      
-      # User does not exist
+    # User does not exist
      if not user:
 
         raise HTTPException(
@@ -97,7 +106,62 @@ def signin(user_data: UserSignin, db: Session = Depends(get_db)):
         user_id=user.id,
         email=user.email
     )
+     #create refresh token
+     refresh_token = create_refresh_token(user_id = user.id, email = user.email) 
+     print("refresh token generated success full")
      return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
+
+@router.post("/refresh", response_model = TokenResponse)
+def refresh_access_token(token_data: RefreshTokenRequest):
+    # Generate a new access token using a valid refresh token
+    try: #decode refresh token
+        payload = jwt.decode(
+            token_data.refresh_token,
+            JWT_SECRET_KEY,
+            algorithms = [JWT_ALGORITHM]
+        )
+        #get token type
+        token_type = payload.get("type")
+
+        #Make sure this is a refresh token
+        if token_type != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail = "Invalid refresh token"
+            )
+        #get user information 
+        user_id= payload.get("sub")
+        email = payload.get("email")
+
+        if not user_id or not email:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail = "Invalid refresh token"
+            )
+        #Generate new access token
+        new_access_token = create_access_token(
+            user_id=int(user_id),
+            email=email
+        )
+
+        return{
+            "access_token": new_access_token,
+            "refresh_token": token_data.refresh_token,
+            "token_type":"bearer"
+        }
+
+    except jwt.ExpiredSignatureError:
+
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has expired"
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token"
+        )
