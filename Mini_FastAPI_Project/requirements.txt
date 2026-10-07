@@ -9,7 +9,7 @@ python-dotenv
 pydantic
 pydantic-settings
 
-
+alembic 
 
 
 
